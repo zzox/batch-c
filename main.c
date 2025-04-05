@@ -33,6 +33,10 @@ int main(void)
 
     BoundingBox bounds = GetMeshBoundingBox(model.meshes[0]);   // Set model bounds
 
+    RenderTexture rt = LoadRenderTexture(800, 450);
+    Texture2D img;
+    // bool isimg = false;
+
     // NOTE: bounds are calculated from the original size of the model,
     // if model is scaled on drawing, bounds must be also scaled
 
@@ -84,18 +88,36 @@ int main(void)
             UnloadDroppedFiles(droppedFiles);    // Unload filepaths from memory
         }
 
+        // // Select model on mouse click
+        // if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+        // {
+        //     // // Check collision between ray and box
+        //     // if (GetRayCollisionBox(GetScreenToWorldRay(GetMousePosition(), camera), bounds).hit) selected = !selected;
+        //     // else selected = false;
+
+        //     Image image = LoadImageFromTexture(icon);
+        //     // ImageFlipVertical(&image);
+        //     ExportImage(image, "my_amazing_texture_painting.png");
+        //     UnloadImage(image);
+        //     // showSaveMessage = true;
+        // }
+        //----------------------------------------------------------------------------------
+
         // Select model on mouse click
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         {
-            // // Check collision between ray and box
-            // if (GetRayCollisionBox(GetScreenToWorldRay(GetMousePosition(), camera), bounds).hit) selected = !selected;
-            // else selected = false;
+            BeginTextureMode(rt);
+                ClearBackground(BLANK);
+                BeginMode3D(camera);
+                DrawModel(model, position, 1.0f, WHITE);        // Draw 3d model with texture
+                EndMode3D();
 
-            Image image = LoadImageFromTexture(icon);
-            // ImageFlipVertical(&image);
-            ExportImage(image, "my_amazing_texture_painting.png");
-            UnloadImage(image);
-            // showSaveMessage = true;
+            EndTextureMode();
+
+            Image e = LoadImageFromTexture(rt.texture);
+            ImageFlipVertical(&e);
+            ExportImage(e, "results/test.png");
+            UnloadImage(e);
         }
         //----------------------------------------------------------------------------------
 
@@ -115,6 +137,12 @@ int main(void)
 
             EndMode3D();
 
+            // if (isimg) {
+            //     DrawTexture(img, 20, 20, WHITE);
+            // }
+
+            DrawTexture(rt.texture, 20, 20, WHITE);
+
             DrawText("Drag & drop model to load mesh/texture.", 10, GetScreenHeight() - 20, 10, DARKGRAY);
             if (selected) DrawText("MODEL SELECTED", GetScreenWidth() - 110, 10, 10, GREEN);
 
@@ -130,6 +158,7 @@ int main(void)
     //--------------------------------------------------------------------------------------
     UnloadTexture(texture);     // Unload texture
     UnloadModel(model);         // Unload model
+    UnloadRenderTexture(rt);
 
     CloseWindow();              // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
