@@ -22,7 +22,8 @@ int main(void)
     camera.projection = CAMERA_PERSPECTIVE;                   // Camera mode type
     camera.projection = CAMERA_ORTHOGRAPHIC;
 
-    ChangeDirectory("/Users/zzoxnet/codes/cpp/raylib-test/");
+    char* dir = "/Users/zzoxnet/codes/cpp/raylib-test/";
+    ChangeDirectory(dir);
 
     Model model = LoadModel("resources/castle.obj");                 // Load model
     Texture2D texture = LoadTexture("resources/castle_diffuse.png"); // Load model texture
@@ -103,6 +104,11 @@ int main(void)
         // }
         //----------------------------------------------------------------------------------
 
+        if (IsKeyPressed(KEY_P)) {
+            if (camera.projection == CAMERA_ORTHOGRAPHIC) camera.projection = CAMERA_PERSPECTIVE;
+            else camera.projection = CAMERA_ORTHOGRAPHIC;
+        }
+
         // Select model on mouse click
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         {
@@ -111,7 +117,6 @@ int main(void)
                 BeginMode3D(camera);
                 DrawModel(model, position, 1.0f, WHITE);        // Draw 3d model with texture
                 EndMode3D();
-
             EndTextureMode();
 
             Image e = LoadImageFromTexture(rt.texture);
@@ -137,11 +142,7 @@ int main(void)
 
             EndMode3D();
 
-            // if (isimg) {
-            //     DrawTexture(img, 20, 20, WHITE);
-            // }
-
-            DrawTexture(rt.texture, 20, 20, WHITE);
+            // DrawTexture(rt.texture, 20, 20, WHITE);
 
             DrawText("Drag & drop model to load mesh/texture.", 10, GetScreenHeight() - 20, 10, DARKGRAY);
             if (selected) DrawText("MODEL SELECTED", GetScreenWidth() - 110, 10, 10, GREEN);
