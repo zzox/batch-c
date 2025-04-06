@@ -11,6 +11,12 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
+    const int offsetX = (int)(screenWidth / 2) - 16;
+    const int offsetY = (int)(screenHeight / 2) - 16;
+
+    const int imgHeight = 32;
+    const int imgWidth = 32;
+
     InitWindow(screenWidth, screenHeight, "raylib [models] example - models loading");
 
     // Define the camera to look into our 3d world
@@ -115,14 +121,18 @@ int main(void)
             BeginTextureMode(rt);
                 ClearBackground(BLANK);
                 BeginMode3D(camera);
-                DrawModel(model, position, 1.0f, WHITE);        // Draw 3d model with texture
+                DrawModel(model, position, 1.0f, WHITE);
                 EndMode3D();
             EndTextureMode();
 
-            Image e = LoadImageFromTexture(rt.texture);
-            ImageFlipVertical(&e);
-            ExportImage(e, "results/test.png");
-            UnloadImage(e);
+            Image big = LoadImageFromTexture(rt.texture);
+            ImageFlipVertical(&big);
+
+            Image res = GenImageColor(imgWidth, imgHeight, BLANK);
+            ImageDraw(&res, big, (Rectangle){ offsetX, offsetY, imgWidth, imgHeight }, (Rectangle){ 0, 0, imgWidth, imgHeight }, WHITE);
+
+            ExportImage(res, "results/test.png");
+            UnloadImage(res);
         }
         //----------------------------------------------------------------------------------
 
@@ -143,6 +153,8 @@ int main(void)
             EndMode3D();
 
             // DrawTexture(rt.texture, 20, 20, WHITE);
+
+            DrawRectangleLines(offsetX, offsetY, imgWidth, imgHeight, MAGENTA);
 
             DrawText("Drag & drop model to load mesh/texture.", 10, GetScreenHeight() - 20, 10, DARKGRAY);
             if (selected) DrawText("MODEL SELECTED", GetScreenWidth() - 110, 10, 10, GREEN);
