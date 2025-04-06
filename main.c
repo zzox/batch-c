@@ -12,11 +12,8 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    const int offsetX = (int)(screenWidth / 2) - 16;
-    const int offsetY = (int)(screenHeight / 2) - 16;
-
-    const int imgHeight = 32;
-    const int imgWidth = 32;
+    const int imgHeight = 64;
+    const int imgWidth = 64;
 
     float mScale = 1.0f;
 
@@ -126,21 +123,28 @@ int main(void)
             mScale -= 0.01f;
         }
 
+        const int offsetX = (int)(screenWidth / 2) - (imgWidth / 2);
+        const int offsetY = (int)(screenHeight / 2) - (imgHeight / 2);
+
         // Select model on mouse click
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         {
-            BeginTextureMode(rt);
-                ClearBackground(BLANK);
-                BeginMode3D(camera);
-                DrawModel(model, position, mScale, WHITE);
-                EndMode3D();
-            EndTextureMode();
+            Image res = GenImageColor(imgWidth * 8, imgHeight, BLANK);
+            for (int i = 0; i < 8; i++) {
+                BeginTextureMode(rt);
+                    ClearBackground(BLANK);
+                    BeginMode3D(camera);
 
-            Image big = LoadImageFromTexture(rt.texture);
-            ImageFlipVertical(&big);
+                    // DrawModel(model, position, mScale, WHITE);
+                    DrawModelEx(model, position, (Vector3){ 0.0f, 1.0f, 0.0f }, i * 360 / 8, (Vector3){ mScale, mScale, mScale }, WHITE);
+                    EndMode3D();
+                EndTextureMode();
 
-            Image res = GenImageColor(imgWidth, imgHeight, BLANK);
-            ImageDraw(&res, big, (Rectangle){ offsetX, offsetY, imgWidth, imgHeight }, (Rectangle){ 0, 0, imgWidth, imgHeight }, WHITE);
+                Image big = LoadImageFromTexture(rt.texture);
+                ImageFlipVertical(&big);
+
+                ImageDraw(&res, big, (Rectangle){ offsetX, offsetY, imgWidth, imgHeight }, (Rectangle){ imgWidth * i, 0, imgWidth, imgHeight }, WHITE);
+            }
 
             ExportImage(res, "results/test.png");
             UnloadImage(res);
