@@ -1,4 +1,5 @@
 #include "raylib.h"
+#include <stdio.h>
 // #include <string.h>
 
 //------------------------------------------------------------------------------------
@@ -16,6 +17,8 @@ int main(void)
 
     const int imgHeight = 32;
     const int imgWidth = 32;
+
+    float mScale = 1.0f;
 
     InitWindow(screenWidth, screenHeight, "raylib [models] example - models loading");
 
@@ -115,13 +118,21 @@ int main(void)
             else camera.projection = CAMERA_ORTHOGRAPHIC;
         }
 
+        if (IsKeyDown(KEY_EQUAL)) {
+            mScale += 0.01f;
+        }
+
+        if (IsKeyDown(KEY_MINUS)) {
+            mScale -= 0.01f;
+        }
+
         // Select model on mouse click
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         {
             BeginTextureMode(rt);
                 ClearBackground(BLANK);
                 BeginMode3D(camera);
-                DrawModel(model, position, 1.0f, WHITE);
+                DrawModel(model, position, mScale, WHITE);
                 EndMode3D();
             EndTextureMode();
 
@@ -144,7 +155,7 @@ int main(void)
 
             BeginMode3D(camera);
 
-                DrawModel(model, position, 1.0f, WHITE);        // Draw 3d model with texture
+                DrawModel(model, position, mScale, WHITE);        // Draw 3d model with texture
 
                 DrawGrid(20, 10.0f);         // Draw a grid
 
