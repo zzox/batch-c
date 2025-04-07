@@ -1,6 +1,6 @@
 #include "raylib.h"
 #include <stdio.h>
-// #include <string.h>
+#include <string.h>
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -17,6 +17,8 @@ int main(void)
 
     float mScale = 1.0f;
 
+    int savedCount = 180;
+
     InitWindow(screenWidth, screenHeight, "raylib [models] example - models loading");
 
     // Define the camera to look into our 3d world
@@ -25,7 +27,7 @@ int main(void)
     camera.target = (Vector3){ 0.0f, 10.0f, 0.0f };     // Camera looking at point
     camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
     camera.fovy = 45.0f;                                // Camera field-of-view Y
-    camera.projection = CAMERA_PERSPECTIVE;                   // Camera mode type
+    camera.projection = CAMERA_PERSPECTIVE;             // Camera mode type
     camera.projection = CAMERA_ORTHOGRAPHIC;
 
     char* dir = "/Users/zzoxnet/codes/cpp/raylib-test/";
@@ -41,13 +43,6 @@ int main(void)
     BoundingBox bounds = GetMeshBoundingBox(model.meshes[0]);   // Set model bounds
 
     RenderTexture rt = LoadRenderTexture(800, 450);
-    Texture2D img;
-    // bool isimg = false;
-
-    // NOTE: bounds are calculated from the original size of the model,
-    // if model is scaled on drawing, bounds must be also scaled
-
-    bool selected = false;          // Selected object flag
 
     DisableCursor();                // Limit cursor to relative movement inside the window
 
@@ -95,32 +90,17 @@ int main(void)
             UnloadDroppedFiles(droppedFiles);    // Unload filepaths from memory
         }
 
-        // // Select model on mouse click
-        // if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
-        // {
-        //     // // Check collision between ray and box
-        //     // if (GetRayCollisionBox(GetScreenToWorldRay(GetMousePosition(), camera), bounds).hit) selected = !selected;
-        //     // else selected = false;
-
-        //     Image image = LoadImageFromTexture(icon);
-        //     // ImageFlipVertical(&image);
-        //     ExportImage(image, "my_amazing_texture_painting.png");
-        //     UnloadImage(image);
-        //     // showSaveMessage = true;
-        // }
-        //----------------------------------------------------------------------------------
-
         if (IsKeyPressed(KEY_P)) {
             if (camera.projection == CAMERA_ORTHOGRAPHIC) camera.projection = CAMERA_PERSPECTIVE;
             else camera.projection = CAMERA_ORTHOGRAPHIC;
         }
 
         if (IsKeyDown(KEY_EQUAL)) {
-            mScale += 0.01f;
+            mScale *= 1.02f;
         }
 
         if (IsKeyDown(KEY_MINUS)) {
-            mScale -= 0.01f;
+            mScale *= 0.98f;
         }
 
         const int offsetX = (int)(screenWidth / 2) - (imgWidth / 2);
@@ -144,7 +124,10 @@ int main(void)
                 ImageFlipVertical(&big);
 
                 ImageDraw(&res, big, (Rectangle){ offsetX, offsetY, imgWidth, imgHeight }, (Rectangle){ imgWidth * i, 0, imgWidth, imgHeight }, WHITE);
+                UnloadImage(big);
             }
+
+            savedCount = 0;
 
             ExportImage(res, "results/test.png");
             UnloadImage(res);
@@ -163,8 +146,6 @@ int main(void)
 
                 DrawGrid(20, 10.0f);         // Draw a grid
 
-                if (selected) DrawBoundingBox(bounds, GREEN);   // Draw selection box
-
             EndMode3D();
 
             // DrawTexture(rt.texture, 20, 20, WHITE);
@@ -172,7 +153,8 @@ int main(void)
             DrawRectangleLines(offsetX, offsetY, imgWidth, imgHeight, MAGENTA);
 
             DrawText("Drag & drop model to load mesh/texture.", 10, GetScreenHeight() - 20, 10, DARKGRAY);
-            if (selected) DrawText("MODEL SELECTED", GetScreenWidth() - 110, 10, 10, GREEN);
+
+            if (++savedCount < 180) DrawText("SAVED EXPORT", GetScreenWidth() - 110, 10, 12, BLUE);
 
             DrawText("(c) Castle 3D model by Alberto Cano", screenWidth - 200, screenHeight - 20, 10, GRAY);
 

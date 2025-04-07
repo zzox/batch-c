@@ -1,5 +1,5 @@
 # use this to compile and run on mac
-`gcc -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL include/libraylib.a main.c -o build/my_app && open build/my_app`
+`gcc -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL include/libraylib.a main.c -o build/my_app && build/my_app`
 
 # after downloading project
 `mkdir results`
