@@ -1,4 +1,8 @@
+// needed to use raygui.h
+#define RAYGUI_IMPLEMENTATION
+
 #include "raylib.h"
+#include "raygui.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -20,6 +24,8 @@ int main(void)
     int savedCount = 180;
     int resNum = 0;
 
+    float val = 0.0;
+
     InitWindow(screenWidth, screenHeight, "raylib [models] example - models loading");
 
     // Define the camera to look into our 3d world
@@ -31,8 +37,9 @@ int main(void)
     camera.projection = CAMERA_PERSPECTIVE;             // Camera mode type
     camera.projection = CAMERA_ORTHOGRAPHIC;
 
-    char* dir = "/Users/zzoxnet/codes/cpp/raylib-test/";
-    ChangeDirectory(dir);
+    // dont need this if i launch my_app from command line
+    // char* dir = "/Users/zzoxnet/codes/cpp/raylib-test/";
+    // ChangeDirectory(dir);
 
     Model model = LoadModel("resources/castle.obj");                 // Load model
     Texture2D texture = LoadTexture("resources/castle_diffuse.png"); // Load model texture
@@ -158,6 +165,8 @@ int main(void)
             DrawText("Drag & drop model to load mesh/texture.", 10, GetScreenHeight() - 20, 10, DARKGRAY);
             if (++savedCount < 180) DrawText("SAVED EXPORT", GetScreenWidth() - 110, 10, 12, BLUE);
             DrawText("(c) Castle 3D model by Alberto Cano", screenWidth - 200, screenHeight - 20, 10, GRAY);
+
+            GuiSlider((Rectangle){10, 30, 100, 16}, "0", "100", &val, 0, 100);
 
             DrawFPS(10, 10);
 
