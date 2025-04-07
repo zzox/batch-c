@@ -18,6 +18,7 @@ int main(void)
     float mScale = 1.0f;
 
     int savedCount = 180;
+    int resNum = 0;
 
     InitWindow(screenWidth, screenHeight, "raylib [models] example - models loading");
 
@@ -129,7 +130,13 @@ int main(void)
 
             savedCount = 0;
 
-            ExportImage(res, "results/test.png");
+            char resText[100] = "results/test-";
+            char numText[4];
+            sprintf(numText, "%d", resNum++);
+            strcat(resText, numText);
+            strcat(resText, ".png");
+
+            ExportImage(res, resText);
             UnloadImage(res);
         }
         //----------------------------------------------------------------------------------
@@ -141,21 +148,15 @@ int main(void)
             ClearBackground(RAYWHITE);
 
             BeginMode3D(camera);
-
-                DrawModel(model, position, mScale, WHITE);        // Draw 3d model with texture
-
-                DrawGrid(20, 10.0f);         // Draw a grid
-
+                DrawModel(model, position, mScale, WHITE); // Draw 3d model with texture
+                DrawGrid(20, 10.0f);                       // Draw a grid
             EndMode3D();
 
-            // DrawTexture(rt.texture, 20, 20, WHITE);
-
+            // guide box
             DrawRectangleLines(offsetX, offsetY, imgWidth, imgHeight, MAGENTA);
 
             DrawText("Drag & drop model to load mesh/texture.", 10, GetScreenHeight() - 20, 10, DARKGRAY);
-
             if (++savedCount < 180) DrawText("SAVED EXPORT", GetScreenWidth() - 110, 10, 12, BLUE);
-
             DrawText("(c) Castle 3D model by Alberto Cano", screenWidth - 200, screenHeight - 20, 10, GRAY);
 
             DrawFPS(10, 10);
