@@ -7,4 +7,5 @@
 `mkdir include`
 
 move all resources into `build/resources`
-set working directory in `main.c` -> `ChangeDirectory`
+
+optional: set working directory in `main.c` -> `ChangeDirectory`

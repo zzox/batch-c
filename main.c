@@ -5,6 +5,7 @@
 #include "raygui.h"
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 enum Mode {
     STATIC = 0,
@@ -23,6 +24,8 @@ int main(void)
 
     const int imgHeight = 64;
     const int imgWidth = 64;
+
+    const int dirs = 4;
 
     float mScale = 1.0f;
 
@@ -119,8 +122,8 @@ int main(void)
             else camera.projection = CAMERA_ORTHOGRAPHIC;
         }
 
-        if (IsKeyPressed(KEY_EQUAL)) mScale *= 1.02f;
-        if (IsKeyPressed(KEY_MINUS)) mScale *= 0.98f;
+        if (IsKeyDown(KEY_EQUAL)) mScale *= 1.02f;
+        if (IsKeyDown(KEY_MINUS)) mScale *= 0.98f;
 
         if (IsKeyPressed(KEY_M)) {
             mode = mode == ANIMATED ? STATIC : ANIMATED;
@@ -137,12 +140,46 @@ int main(void)
         // Select model on mouse click
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         {
-            // if (mode == ANIMATED) {
-            //     Image res = GenImageColor(imgWidth * 8, imgHeight * 4, BLANK);
+            if (mode == ANIMATED) {
+                Image res = GenImageColor(imgWidth * 8, imgHeight * animsCount * dirs, BLANK);
 
-            //     // ExportImage(res, resText);
-            //     UnloadImage(res);
-            // } else {
+                int frames = 0;
+
+                for (int i = 0; i < animsCount * dirs; i++) {
+                    for (int j = 0; j < 8; j++) {
+                        frames++;
+                        BeginTextureMode(rt);
+                            ClearBackground(BLANK);
+                            BeginMode3D(camera);
+
+                            // Update model animation
+                            ModelAnimation a = modelAnimations[(int)floor(i / dirs)];
+                            UpdateModelAnimation(aModel, a, (int)(a.frameCount / 8 * j));
+
+                            // DrawModel(model, position, mScale, WHITE);
+                            DrawModelEx(aModel, position, (Vector3){ 0.0f, 1.0f, 0.0f }, (i % dirs) * 360 / dirs, (Vector3){ mScale, mScale, mScale }, WHITE);
+                            EndMode3D();
+                        EndTextureMode();
+
+                        Image big = LoadImageFromTexture(rt.texture);
+                        ImageFlipVertical(&big);
+
+                        ImageDraw(&res, big, (Rectangle){ offsetX, offsetY, imgWidth, imgHeight }, (Rectangle){ imgWidth * j, imgHeight * i, imgWidth, imgHeight }, WHITE);
+                        UnloadImage(big);
+                    }
+                }
+
+                printf("%i frames exported\n", frames);
+
+                char resText[100] = "results/test-sheet";
+                char numText[4];
+                sprintf(numText, "%d", resNum++);
+                strcat(resText, numText);
+                strcat(resText, ".png");
+
+                ExportImage(res, resText);
+                UnloadImage(res);
+            } else {
                 Image res = GenImageColor(imgWidth * 8, imgHeight, BLANK);
                 for (int i = 0; i < 8; i++) {
                     BeginTextureMode(rt);
@@ -161,8 +198,6 @@ int main(void)
                     UnloadImage(big);
                 }
 
-                savedCount = 0;
-
                 char resText[100] = "results/test-";
                 char numText[4];
                 sprintf(numText, "%d", resNum++);
@@ -171,7 +206,9 @@ int main(void)
 
                 ExportImage(res, resText);
                 UnloadImage(res);
-            // }
+            }
+
+            savedCount = 0;
         }
         //----------------------------------------------------------------------------------
 
