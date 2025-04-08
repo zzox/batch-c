@@ -6,6 +6,11 @@
 #include <stdio.h>
 #include <string.h>
 
+enum Mode {
+    STATIC = 0,
+    ANIMATED
+};
+
 //------------------------------------------------------------------------------------
 // Program main entry point
 //------------------------------------------------------------------------------------
@@ -26,6 +31,8 @@ int main(void)
 
     float val = 0.0;
 
+    enum Mode mode = STATIC;
+
     InitWindow(screenWidth, screenHeight, "raylib [models] example - models loading");
 
     // Define the camera to look into our 3d world
@@ -43,8 +50,17 @@ int main(void)
 
     Model model = LoadModel("resources/castle.obj");                 // Load model
     Texture2D texture = LoadTexture("resources/castle_diffuse.png"); // Load model texture
-    Texture2D icon = LoadTexture("resources/icon.png");
     model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;            // Set map diffuse texture
+
+    Model aModel = LoadModel("resources/robot.glb");
+
+    // Load gltf model animations
+    int animsCount = 0;
+    unsigned int animIndex = 0;
+    unsigned int animCurrentFrame = 0;
+    ModelAnimation *modelAnimations = LoadModelAnimations("resources/robot.glb", &animsCount);
+
+    printf("%d\n", animsCount);
 
     Vector3 position = { 0.0f, 0.0f, 0.0f };                    // Set model position
 
@@ -103,13 +119,17 @@ int main(void)
             else camera.projection = CAMERA_ORTHOGRAPHIC;
         }
 
-        if (IsKeyDown(KEY_EQUAL)) {
-            mScale *= 1.02f;
+        if (IsKeyPressed(KEY_EQUAL)) mScale *= 1.02f;
+        if (IsKeyPressed(KEY_MINUS)) mScale *= 0.98f;
+
+        if (IsKeyPressed(KEY_M)) {
+            mode = mode == ANIMATED ? STATIC : ANIMATED;
+            // printf("%d", animCurrentFrame);
         }
 
-        if (IsKeyDown(KEY_MINUS)) {
-            mScale *= 0.98f;
-        }
+        // Select current animation
+        if (IsMouseButtonPressed(KEY_O)) animIndex = (animIndex + 1) % animsCount;
+        else if (IsMouseButtonPressed(KEY_P)) animIndex = (animIndex + animsCount - 1) % animsCount;
 
         const int offsetX = (int)(screenWidth / 2) - (imgWidth / 2);
         const int offsetY = (int)(screenHeight / 2) - (imgHeight / 2);
@@ -117,36 +137,49 @@ int main(void)
         // Select model on mouse click
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         {
-            Image res = GenImageColor(imgWidth * 8, imgHeight, BLANK);
-            for (int i = 0; i < 8; i++) {
-                BeginTextureMode(rt);
-                    ClearBackground(BLANK);
-                    BeginMode3D(camera);
+            // if (mode == ANIMATED) {
+            //     Image res = GenImageColor(imgWidth * 8, imgHeight * 4, BLANK);
 
-                    // DrawModel(model, position, mScale, WHITE);
-                    DrawModelEx(model, position, (Vector3){ 0.0f, 1.0f, 0.0f }, i * 360 / 8, (Vector3){ mScale, mScale, mScale }, WHITE);
-                    EndMode3D();
-                EndTextureMode();
+            //     // ExportImage(res, resText);
+            //     UnloadImage(res);
+            // } else {
+                Image res = GenImageColor(imgWidth * 8, imgHeight, BLANK);
+                for (int i = 0; i < 8; i++) {
+                    BeginTextureMode(rt);
+                        ClearBackground(BLANK);
+                        BeginMode3D(camera);
 
-                Image big = LoadImageFromTexture(rt.texture);
-                ImageFlipVertical(&big);
+                        // DrawModel(model, position, mScale, WHITE);
+                        DrawModelEx(model, position, (Vector3){ 0.0f, 1.0f, 0.0f }, i * 360 / 8, (Vector3){ mScale, mScale, mScale }, WHITE);
+                        EndMode3D();
+                    EndTextureMode();
 
-                ImageDraw(&res, big, (Rectangle){ offsetX, offsetY, imgWidth, imgHeight }, (Rectangle){ imgWidth * i, 0, imgWidth, imgHeight }, WHITE);
-                UnloadImage(big);
-            }
+                    Image big = LoadImageFromTexture(rt.texture);
+                    ImageFlipVertical(&big);
 
-            savedCount = 0;
+                    ImageDraw(&res, big, (Rectangle){ offsetX, offsetY, imgWidth, imgHeight }, (Rectangle){ imgWidth * i, 0, imgWidth, imgHeight }, WHITE);
+                    UnloadImage(big);
+                }
 
-            char resText[100] = "results/test-";
-            char numText[4];
-            sprintf(numText, "%d", resNum++);
-            strcat(resText, numText);
-            strcat(resText, ".png");
+                savedCount = 0;
 
-            ExportImage(res, resText);
-            UnloadImage(res);
+                char resText[100] = "results/test-";
+                char numText[4];
+                sprintf(numText, "%d", resNum++);
+                strcat(resText, numText);
+                strcat(resText, ".png");
+
+                ExportImage(res, resText);
+                UnloadImage(res);
+            // }
         }
         //----------------------------------------------------------------------------------
+
+        // Update model animation
+        ModelAnimation anim = modelAnimations[animIndex];
+        animCurrentFrame = (animCurrentFrame + 1) % anim.frameCount;
+
+        UpdateModelAnimation(aModel, anim, animCurrentFrame);
 
         // Draw
         //----------------------------------------------------------------------------------
@@ -155,7 +188,8 @@ int main(void)
             ClearBackground(RAYWHITE);
 
             BeginMode3D(camera);
-                DrawModel(model, position, mScale, WHITE); // Draw 3d model with texture
+                if (mode == STATIC) DrawModel(model, position, mScale, WHITE); // Draw 3d model with texture
+                else DrawModel(aModel, position, mScale, WHITE);
                 DrawGrid(20, 10.0f);                       // Draw a grid
             EndMode3D();
 
