@@ -7,6 +7,8 @@
 #include <string.h>
 #include <math.h>
 
+#define iprint(i) printf("%d\n", i)
+
 enum Mode {
     STATIC = 0,
     ANIMATED
@@ -63,7 +65,7 @@ int main(void)
     unsigned int animCurrentFrame = 0;
     ModelAnimation *modelAnimations = LoadModelAnimations("resources/robot.glb", &animsCount);
 
-    printf("%d\n", animsCount);
+    iprint(animsCount);
 
     Vector3 position = { 0.0f, 0.0f, 0.0f };                    // Set model position
 
