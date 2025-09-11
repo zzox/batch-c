@@ -1,11 +1,20 @@
 // needed to use raygui.h
 #define RAYGUI_IMPLEMENTATION
+#define RLIGHTS_IMPLEMENTATION
 
 #include "raylib.h"
 #include "raygui.h"
+#include "rlights.h"
+#include "raymath.h"
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+
+// #if defined(PLATFORM_DESKTOP)
+    // #define GLSL_VERSION            330
+// #else   // PLATFORM_ANDROID, PLATFORM_WEB
+    #define GLSL_VERSION            330
+// #endif
 
 #define iprint(i) printf("%d\n", i)
 
@@ -24,8 +33,8 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    const int imgHeight = 64;
-    const int imgWidth = 64;
+    const int imgHeight = 32;
+    const int imgWidth = 16;
 
     const int dirs = 4;
 
@@ -49,13 +58,40 @@ int main(void)
     camera.projection = CAMERA_PERSPECTIVE;             // Camera mode type
     camera.projection = CAMERA_ORTHOGRAPHIC;
 
+    // Load basic lighting shader
+    Shader shader = LoadShader(TextFormat("resources/lighting.vs", GLSL_VERSION),
+                               TextFormat("resources/lighting.fs", GLSL_VERSION));
+    // Get some required shader locations
+    shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(shader, "viewPos");
+    // NOTE: "matModel" location name is automatically assigned on shader loading,
+    // no need to get the location again if using that uniform name
+    // shader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocation(shader, "matModel");
+
+    // Ambient light level (some basic lighting)
+    int ambientLoc = GetShaderLocation(shader, "ambient");
+    SetShaderValue(shader, ambientLoc, (float[4]){ 0.5f, 0.5f, 0.5f, 1.0f }, SHADER_UNIFORM_VEC4);
+
+    // Create lights
+    Light lights[MAX_LIGHTS] = { 0 };
+    // lights[0] = CreateLight(LIGHT_POINT, (Vector3){ -20, 10, -20 }, Vector3Zero(), YELLOW, shader);
+    // lights[1] = CreateLight(LIGHT_POINT, (Vector3){ 20, 10, 20 }, Vector3Zero(), RED, shader);
+    // lights[2] = CreateLight(LIGHT_POINT, (Vector3){ -20, 10, 20 }, Vector3Zero(), GREEN, shader);
+    // lights[3] = CreateLight(LIGHT_POINT, (Vector3){ 20, 10, 20 }, Vector3Zero(), BLUE, shader);
+
+    lights[0] = CreateLight(LIGHT_POINT, (Vector3){ -200, 100, -200 }, Vector3Zero(), WHITE, shader);
+    lights[1] = CreateLight(LIGHT_POINT, (Vector3){ 200, 100, 200 }, Vector3Zero(), WHITE, shader);
+    lights[2] = CreateLight(LIGHT_POINT, (Vector3){ -200, 100, 200 }, Vector3Zero(), WHITE, shader);
+    lights[3] = CreateLight(LIGHT_POINT, (Vector3){ 200, 100, 200 }, Vector3Zero(), WHITE, shader);
+
     // dont need this if i launch my_app from command line
     // char* dir = "/Users/zzoxnet/codes/cpp/raylib-test/";
     // ChangeDirectory(dir);
 
-    Model model = LoadModel("resources/castle.obj");                 // Load model
-    Texture2D texture = LoadTexture("resources/castle_diffuse.png"); // Load model texture
-    model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;            // Set map diffuse texture
+    Model model = LoadModel("resources/test-model.obj");             // Load model
+    Texture2D texture = LoadTexture("resources/texture.png");        // Load model texture
+    model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture; // Set map diffuse texture
+    model.materials[0].shader = shader; // the model's materials needs to use the shader to be lit!
+    // ^^^ it probably sets the main shader
 
     Model aModel = LoadModel("resources/robot.glb");
 
@@ -68,8 +104,9 @@ int main(void)
     iprint(animsCount);
 
     Vector3 position = { 0.0f, 0.0f, 0.0f };                    // Set model position
-
+    float rotation = 0.0f;                                      // Set model rotation
     BoundingBox bounds = GetMeshBoundingBox(model.meshes[0]);   // Set model bounds
+    int angles = 4;
 
     RenderTexture rt = LoadRenderTexture(800, 450);
 
@@ -132,6 +169,16 @@ int main(void)
             // printf("%d", animCurrentFrame);
         }
 
+        if (IsKeyPressed(KEY_LEFT_BRACKET)) {
+            rotation = rotation - 45.0f;
+            // printf("%f deg\n", rotation);
+        }
+
+        if (IsKeyPressed(KEY_RIGHT_BRACKET)) {
+            rotation = rotation + 45.0f;
+            // printf("%f deg\n", rotation);
+        }
+
         // Select current animation
         if (IsMouseButtonPressed(KEY_O)) animIndex = (animIndex + 1) % animsCount;
         else if (IsMouseButtonPressed(KEY_P)) animIndex = (animIndex + animsCount - 1) % animsCount;
@@ -139,27 +186,37 @@ int main(void)
         const int offsetX = (int)(screenWidth / 2) - (imgWidth / 2);
         const int offsetY = (int)(screenHeight / 2) - (imgHeight / 2);
 
+        for (int i = 0; i < MAX_LIGHTS; i++) UpdateLightValues(shader, lights[i]);
+        SetShaderValue(shader, shader.locs[SHADER_LOC_VECTOR_VIEW], &camera.position, SHADER_UNIFORM_VEC3);
+
+        if (IsKeyPressed(KEY_ONE)) { lights[0].enabled = !lights[0].enabled; }
+        if (IsKeyPressed(KEY_TWO)) { lights[1].enabled = !lights[1].enabled; }
+        if (IsKeyPressed(KEY_THREE)) { lights[2].enabled = !lights[2].enabled; }
+        if (IsKeyPressed(KEY_FOUR)) { lights[3].enabled = !lights[3].enabled; }
+
         // Select model on mouse click
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         {
             if (mode == ANIMATED) {
-                Image res = GenImageColor(imgWidth * 8, imgHeight * animsCount * dirs, BLANK);
+                Image res = GenImageColor(imgWidth * angles, imgHeight * animsCount * dirs, BLANK);
 
                 int frames = 0;
 
                 for (int i = 0; i < animsCount * dirs; i++) {
-                    for (int j = 0; j < 8; j++) {
+                    for (int j = 0; j < angles; j++) {
                         frames++;
                         BeginTextureMode(rt);
                             ClearBackground(BLANK);
                             BeginMode3D(camera);
+                            BeginShaderMode(shader);
 
                             // Update model animation
                             ModelAnimation a = modelAnimations[(int)floor(i / dirs)];
-                            UpdateModelAnimation(aModel, a, (int)(a.frameCount / 8 * j));
+                            UpdateModelAnimation(aModel, a, (int)(a.frameCount / angles * j));
 
                             // DrawModel(model, position, mScale, WHITE);
                             DrawModelEx(aModel, position, (Vector3){ 0.0f, 1.0f, 0.0f }, (i % dirs) * 360 / dirs, (Vector3){ mScale, mScale, mScale }, WHITE);
+                            EndShaderMode();
                             EndMode3D();
                         EndTextureMode();
 
@@ -182,14 +239,16 @@ int main(void)
                 ExportImage(res, resText);
                 UnloadImage(res);
             } else {
-                Image res = GenImageColor(imgWidth * 8, imgHeight, BLANK);
-                for (int i = 0; i < 8; i++) {
+                Image res = GenImageColor(imgWidth * angles, imgHeight, BLANK);
+                for (int i = 0; i < angles; i++) {
                     BeginTextureMode(rt);
                         ClearBackground(BLANK);
                         BeginMode3D(camera);
+                        BeginShaderMode(shader);
 
                         // DrawModel(model, position, mScale, WHITE);
-                        DrawModelEx(model, position, (Vector3){ 0.0f, 1.0f, 0.0f }, i * 360 / 8, (Vector3){ mScale, mScale, mScale }, WHITE);
+                        DrawModelEx(model, position, (Vector3){ 0.0f, 1.0f, 0.0f }, i * 360 / angles, (Vector3){ mScale, mScale, mScale }, WHITE);
+                        EndShaderMode();
                         EndMode3D();
                     EndTextureMode();
 
@@ -227,9 +286,19 @@ int main(void)
             ClearBackground(RAYWHITE);
 
             BeginMode3D(camera);
-                if (mode == STATIC) DrawModel(model, position, mScale, WHITE); // Draw 3d model with texture
+            BeginShaderMode(shader);
+                if (mode == STATIC) DrawModelEx(model, position, (Vector3){ 0.0f, 1.0f, 0.0f }, rotation, (Vector3){ mScale, mScale, mScale }, WHITE);
                 else DrawModel(aModel, position, mScale, WHITE);
                 DrawGrid(20, 10.0f);                       // Draw a grid
+            EndShaderMode();
+
+            // Draw spheres to show where the lights are
+            for (int i = 0; i < MAX_LIGHTS; i++)
+            {
+                if (lights[i].enabled) DrawSphereEx(lights[i].position, 0.2f, 8, 8, lights[i].color);
+                else DrawSphereWires(lights[i].position, 0.2f, 8, 8, ColorAlpha(lights[i].color, 0.3f));
+            }
+
             EndMode3D();
 
             // guide box

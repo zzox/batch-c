@@ -9,3 +9,6 @@
 move all resources into `build/resources`
 
 optional: set working directory in `main.c` -> `ChangeDirectory`
+
+## use this to make libraylib.a
+[https://github.com/raysan5/raylib/wiki/Working-on-macOS](https://github.com/raysan5/raylib/wiki/Working-on-macOS#without-xcode---building-statically)
