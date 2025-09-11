@@ -33,8 +33,8 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    const int imgHeight = 32;
-    const int imgWidth = 16;
+    const int imgHeight = 128;
+    const int imgWidth = 64;
 
     const int dirs = 4;
 
@@ -139,6 +139,7 @@ int main(void)
                     UnloadModel(model);                         // Unload previous model
                     model = LoadModel(droppedFiles.paths[0]);   // Load new model
                     model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture; // Set current map diffuse texture
+                    model.materials[0].shader = shader;
 
                     bounds = GetMeshBoundingBox(model.meshes[0]);
 
