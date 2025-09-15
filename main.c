@@ -87,19 +87,19 @@ int main(void)
     // char* dir = "/Users/zzoxnet/codes/cpp/raylib-test/";
     // ChangeDirectory(dir);
 
-    Model model = LoadModel("resources/test-model.obj");             // Load model
+    Model model = LoadModel("resources/test2.gltf");             // Load model
     Texture2D texture = LoadTexture("resources/texture.png");        // Load model texture
     model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture; // Set map diffuse texture
     model.materials[0].shader = shader; // the model's materials needs to use the shader to be lit!
     // ^^^ it probably sets the main shader
 
-    Model aModel = LoadModel("resources/robot.glb");
+    Model aModel = LoadModel("resources/test2.gltf");
 
     // Load gltf model animations
     int animsCount = 0;
     unsigned int animIndex = 0;
     unsigned int animCurrentFrame = 0;
-    ModelAnimation *modelAnimations = LoadModelAnimations("resources/robot.glb", &animsCount);
+    ModelAnimation *modelAnimations = LoadModelAnimations("resources/test2.gltf", &animsCount);
 
     iprint(animsCount);
 
