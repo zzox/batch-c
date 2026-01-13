@@ -87,19 +87,19 @@ int main(void)
     // char* dir = "/Users/zzoxnet/codes/cpp/raylib-test/";
     // ChangeDirectory(dir);
 
-    Model model = LoadModel("resources/test2.gltf");             // Load model
-    Texture2D texture = LoadTexture("resources/texture.png");        // Load model texture
+    Model model = LoadModel("resources/arrow.obj");             // Load model
+    Texture2D texture = LoadTexture("resources/arrowtexture.png");        // Load model texture
     model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture; // Set map diffuse texture
     model.materials[0].shader = shader; // the model's materials needs to use the shader to be lit!
     // ^^^ it probably sets the main shader
 
-    Model aModel = LoadModel("resources/test2.gltf");
+    Model aModel = LoadModel("resources/arrow.obj");
 
     // Load gltf model animations
     int animsCount = 0;
     unsigned int animIndex = 0;
     unsigned int animCurrentFrame = 0;
-    ModelAnimation *modelAnimations = LoadModelAnimations("resources/test2.gltf", &animsCount);
+    ModelAnimation *modelAnimations = LoadModelAnimations("resources/arrow.obj", &animsCount);
 
     iprint(animsCount);
 
@@ -275,10 +275,10 @@ int main(void)
         //----------------------------------------------------------------------------------
 
         // Update model animation
-        ModelAnimation anim = modelAnimations[animIndex];
-        animCurrentFrame = (animCurrentFrame + 1) % anim.frameCount;
+        // ModelAnimation anim = modelAnimations[animIndex];
+        // animCurrentFrame = (animCurrentFrame + 1) % anim.frameCount;
 
-        UpdateModelAnimation(aModel, anim, animCurrentFrame);
+        // UpdateModelAnimation(aModel, anim, animCurrentFrame);
 
         // Draw
         //----------------------------------------------------------------------------------
